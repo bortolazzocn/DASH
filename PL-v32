@@ -1,0 +1,3651 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paylume Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --white: #ffffff;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --gray: #6c757d;
+            --dark-gray: #495057;
+            --black: #212529;
+            --orange: #ff6b00;
+            --light-orange: #ff9955;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --success: #28a745;
+            --info: #007bff;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --crypto: #627eea;
+            --premium: #f1c40f;
+            
+            /* Dark mode variables */
+            --dark-bg: #1a1a2e;
+            --dark-card: #16213e;
+            --dark-border: #0f3460;
+            --dark-text: #eee;
+            --dark-secondary: #a0a0a0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-gray);
+            color: var(--black);
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        body.crypto-mode {
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background-color: var(--white);
+            padding: 30px 0;
+            transition: all 0.3s ease;
+            position: relative;
+            border-right: 1px solid var(--medium-gray);
+            box-shadow: 2px 0 10px var(--shadow);
+            z-index: 100;
+        }
+        
+        body.crypto-mode .sidebar {
+            background-color: var(--dark-card);
+            border-right-color: var(--dark-border);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 0;
+            margin-bottom: 40px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 60px;
+            margin-right: 15px;
+            position: relative;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .bulb {
+            stroke: var(--orange);
+            stroke-width: 2;
+            fill: none;
+        }
+        
+        body.crypto-mode .bulb {
+            stroke: var(--crypto);
+        }
+        
+        .logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--black) 0%, var(--orange) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        
+        body.crypto-mode .logo-text {
+            background: linear-gradient(90deg, var(--dark-text) 0%, var(--crypto) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 30px;
+            color: var(--gray);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            margin: 5px 15px;
+            border-radius: 8px;
+        }
+        
+        body.crypto-mode .menu-item {
+            color: var(--dark-secondary);
+        }
+        
+        .menu-item:hover, .menu-item.active {
+            background-color: var(--light-gray);
+            color: var(--orange);
+        }
+        
+        body.crypto-mode .menu-item:hover, 
+        body.crypto-mode .menu-item.active {
+            background-color: var(--dark-border);
+            color: var(--crypto);
+        }
+        
+        .menu-item i {
+            margin-right: 15px;
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .menu-item:hover i {
+            transform: scale(1.2);
+        }
+        
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background-color: var(--orange);
+            border-radius: 0 4px 4px 0;
+        }
+        
+        body.crypto-mode .menu-item.active::before {
+            background-color: var(--crypto);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            transition: margin-left 0.3s ease, background-color 0.3s ease;
+        }
+        
+        body.crypto-mode .main-content {
+            background-color: var(--dark-bg);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--black);
+            margin-right: 15px;
+        }
+        
+        body.crypto-mode .header h1 {
+            color: var(--dark-text);
+        }
+        
+        /* Crypto Mode Toggle */
+        .crypto-toggle {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .crypto-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--crypto);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+        
+        .crypto-label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray);
+            margin-left: 10px;
+        }
+        
+        body.crypto-mode .crypto-label {
+            color: var(--crypto);
+        }
+        
+        .crypto-label i {
+            margin-right: 5px;
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .search-box {
+            position: relative;
+            display: none;
+        }
+        
+        .search-box.active {
+            display: block;
+        }
+        
+        .search-box input {
+            padding: 10px 15px 10px 40px;
+            border-radius: 30px;
+            border: 1px solid var(--medium-gray);
+            background-color: var(--white);
+            width: 250px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+        
+        body.crypto-mode .search-box input {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+            color: var(--dark-text);
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--orange);
+            width: 300px;
+        }
+        
+        body.crypto-mode .search-box input:focus {
+            border-color: var(--crypto);
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .search-box i {
+            color: var(--dark-secondary);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            box-shadow: 0 2px 8px var(--shadow);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        body.crypto-mode .user-avatar {
+            background-color: var(--dark-card);
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .notification-icon {
+            position: relative;
+            margin-right: 25px;
+            cursor: pointer;
+            font-size: 22px;
+            color: var(--gray);
+            transition: all 0.2s ease;
+        }
+        
+        body.crypto-mode .notification-icon {
+            color: var(--dark-secondary);
+        }
+        
+        .notification-icon:hover {
+            color: var(--orange);
+            transform: scale(1.1);
+        }
+        
+        body.crypto-mode .notification-icon:hover {
+            color: var(--crypto);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--orange);
+            color: white;
+            font-size: 10px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px var(--shadow);
+            animation: pulse 2s infinite;
+        }
+        
+        body.crypto-mode .notification-badge {
+            background-color: var(--crypto);
+        }
+        
+        .date-filter {
+            display: flex;
+            align-items: center;
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 8px 12px;
+            box-shadow: 0 2px 8px var(--shadow);
+            cursor: pointer;
+            border: 1px solid var(--medium-gray);
+            transition: all 0.3s ease;
+        }
+        
+        body.crypto-mode .date-filter {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+        }
+        
+        .date-filter:hover {
+            border-color: var(--orange);
+        }
+        
+        body.crypto-mode .date-filter:hover {
+            border-color: var(--crypto);
+        }
+        
+        .date-filter i {
+            margin-right: 8px;
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .date-filter i {
+            color: var(--dark-secondary);
+        }
+        
+        .date-filter span {
+            font-weight: 500;
+            color: var(--dark-gray);
+        }
+        
+        body.crypto-mode .date-filter span {
+            color: var(--dark-text);
+        }
+        
+        /* Cards */
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            border: 1px solid var(--medium-gray);
+            overflow: hidden;
+        }
+        
+        body.crypto-mode .card {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--orange);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+        
+        body.crypto-mode .card::before {
+            background-color: var(--crypto);
+        }
+        
+        .card:hover::before {
+            transform: scaleY(1);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px var(--shadow);
+        }
+        
+        body.crypto-mode .card:hover {
+            box-shadow: 0 8px 30px rgba(98, 126, 234, 0.3);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 16px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+        
+        body.crypto-mode .card-title {
+            color: var(--dark-secondary);
+        }
+        
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background-color: var(--light-gray);
+            color: var(--orange);
+            transition: all 0.3s ease;
+        }
+        
+        body.crypto-mode .card-icon {
+            background-color: var(--dark-border);
+            color: var(--crypto);
+        }
+        
+        .card:hover .card-icon {
+            transform: rotate(15deg) scale(1.1);
+        }
+        
+        .card-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--black);
+            letter-spacing: -0.5px;
+        }
+        
+        body.crypto-mode .card-value {
+            color: var(--dark-text);
+        }
+        
+        .card-change {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-change.positive {
+            color: var(--success);
+        }
+        
+        .card-change.negative {
+            color: var(--danger);
+        }
+        
+        /* Withdraw Card */
+        .withdraw-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px var(--shadow);
+            position: relative;
+            border: 1px solid var(--medium-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        body.crypto-mode .withdraw-card {
+            background: linear-gradient(135deg, var(--dark-card) 0%, var(--dark-bg) 100%);
+            border-color: var(--dark-border);
+        }
+        
+        .withdraw-card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,107,0,0.1) 0%, rgba(255,107,0,0) 70%);
+        }
+        
+        body.crypto-mode .withdraw-card::before {
+            background: radial-gradient(circle, rgba(98,126,234,0.2) 0%, rgba(98,126,234,0) 70%);
+        }
+        
+        .withdraw-info {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .withdraw-title {
+            font-size: 16px;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+        
+        body.crypto-mode .withdraw-title {
+            color: var(--dark-secondary);
+        }
+        
+        .withdraw-amount {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .withdraw-amount {
+            color: var(--dark-text);
+        }
+        
+        .crypto-balance {
+            display: none;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        body.crypto-mode .crypto-balance {
+            display: flex;
+        }
+        
+        .crypto-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            background-color: var(--crypto);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .crypto-amount {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--crypto);
+        }
+        
+        .withdraw-button {
+            background-color: var(--orange);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1;
+        }
+        
+        body.crypto-mode .withdraw-button {
+            background-color: var(--crypto);
+            box-shadow: 0 4px 15px rgba(98, 126, 234, 0.3);
+        }
+        
+        .withdraw-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .withdraw-button:hover::before {
+            left: 100%;
+        }
+        
+        .withdraw-button:hover {
+            background-color: var(--light-orange);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.4);
+        }
+        
+        body.crypto-mode .withdraw-button:hover {
+            background-color: #7c8ff0;
+            box-shadow: 0 6px 20px rgba(98, 126, 234, 0.4);
+        }
+        
+        .withdraw-button:active {
+            transform: translateY(-1px);
+        }
+        
+        /* Sales Chart Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .chart-container {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px var(--shadow);
+            position: relative;
+            border: 1px solid var(--medium-gray);
+        }
+        
+        body.crypto-mode .chart-container {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .chart-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .chart-title {
+            color: var(--dark-text);
+        }
+        
+        .chart-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chart-options {
+            display: flex;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            padding: 4px;
+        }
+        
+        body.crypto-mode .chart-options {
+            background-color: var(--dark-border);
+        }
+        
+        .chart-option {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .chart-option {
+            color: var(--dark-secondary);
+        }
+        
+        .chart-option.active {
+            background-color: var(--orange);
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 107, 0, 0.3);
+        }
+        
+        body.crypto-mode .chart-option.active {
+            background-color: var(--crypto);
+            box-shadow: 0 2px 8px rgba(98, 126, 234, 0.3);
+        }
+        
+        .chart-option:hover:not(.active) {
+            background-color: var(--medium-gray);
+        }
+        
+        body.crypto-mode .chart-option:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-action {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background-color: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.2s ease;
+        }
+        
+        body.crypto-mode .chart-action {
+            background-color: var(--dark-border);
+            color: var(--dark-secondary);
+        }
+        
+        .chart-action:hover {
+            background-color: var(--medium-gray);
+            color: var(--orange);
+        }
+        
+        body.crypto-mode .chart-action:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--crypto);
+        }
+        
+        .chart {
+            height: 320px;
+            position: relative;
+        }
+        
+        /* Order Status Cards */
+        .order-status-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .order-status-card {
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        body.crypto-mode .order-status-card {
+            background-color: var(--dark-bg);
+        }
+        
+        .order-status-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+        
+        .status-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .status-icon.pending {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: var(--warning);
+        }
+        
+        .status-icon.processing {
+            background-color: rgba(0, 123, 255, 0.1);
+            color: var(--info);
+        }
+        
+        .status-icon.completed {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+        
+        .status-icon.failed {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+        
+        .status-info {
+            flex: 1;
+        }
+        
+        .status-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 4px;
+        }
+        
+        body.crypto-mode .status-value {
+            color: var(--dark-text);
+        }
+        
+        .status-label {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .status-label {
+            color: var(--dark-secondary);
+        }
+        
+        /* News Section */
+        .news-section {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px var(--shadow);
+            border: 1px solid var(--medium-gray);
+            margin-bottom: 40px;
+        }
+        
+        body.crypto-mode .news-section {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+        }
+        
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .news-item {
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--info);
+        }
+        
+        body.crypto-mode .news-item {
+            background-color: var(--dark-bg);
+        }
+        
+        .news-item.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .news-item.success {
+            border-left-color: var(--success);
+        }
+        
+        .news-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+        
+        .news-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            background-color: var(--white);
+            color: var(--info);
+            flex-shrink: 0;
+        }
+        
+        body.crypto-mode .news-icon {
+            background-color: var(--dark-card);
+        }
+        
+        .news-item.warning .news-icon {
+            color: var(--warning);
+        }
+        
+        .news-item.success .news-icon {
+            color: var(--success);
+        }
+        
+        .news-content {
+            flex: 1;
+        }
+        
+        .news-content h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .news-content h4 {
+            color: var(--dark-text);
+        }
+        
+        .news-content p {
+            font-size: 14px;
+            color: var(--dark-gray);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        body.crypto-mode .news-content p {
+            color: var(--dark-text);
+        }
+        
+        .news-date {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .news-date {
+            color: var(--dark-secondary);
+        }
+        
+        /* Transaction Metrics Section */
+        .transaction-metrics {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px var(--shadow);
+            border: 1px solid var(--medium-gray);
+            margin-bottom: 40px;
+        }
+        
+        body.crypto-mode .transaction-metrics {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+        }
+        
+        .metrics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .metrics-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--black);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        body.crypto-mode .metrics-title {
+            color: var(--dark-text);
+        }
+        
+        .metrics-title i {
+            color: var(--orange);
+        }
+        
+        .metrics-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        body.crypto-mode .metric-card {
+            background-color: var(--dark-bg);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+        
+        .metric-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background-color: var(--orange);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        body.crypto-mode .metric-icon {
+            background-color: var(--crypto);
+        }
+        
+        .metric-info {
+            flex: 1;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 4px;
+        }
+        
+        body.crypto-mode .metric-value {
+            color: var(--dark-text);
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .metric-label {
+            color: var(--dark-secondary);
+        }
+        
+        .metrics-charts {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .chart-container {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px var(--shadow);
+            border: 1px solid var(--medium-gray);
+        }
+        
+        body.crypto-mode .chart-container {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+        }
+        
+        .chart-container h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 15px;
+        }
+        
+        body.crypto-mode .chart-container h3 {
+            color: var(--dark-text);
+        }
+        
+        .chart {
+            height: 200px;
+        }
+        
+        /* Premium Suppliers Section */
+        .premium-suppliers {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px var(--shadow);
+            position: relative;
+            border: 1px solid var(--medium-gray);
+            margin-bottom: 40px;
+        }
+        
+        body.crypto-mode .premium-suppliers {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+        }
+        
+        .premium-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .premium-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--black);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        body.crypto-mode .premium-title {
+            color: var(--dark-text);
+        }
+        
+        .premium-title i {
+            color: var(--premium);
+        }
+        
+        .suppliers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .supplier-card {
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            border: 1px solid var(--medium-gray);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body.crypto-mode .supplier-card {
+            background-color: var(--dark-bg);
+            border-color: var(--dark-border);
+        }
+        
+        .supplier-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            background-color: var(--premium);
+            clip-path: polygon(100% 0, 0 0, 100% 100%);
+            opacity: 0.2;
+        }
+        
+        .supplier-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px var(--shadow);
+        }
+        
+        body.crypto-mode .supplier-card:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .supplier-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .supplier-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background-color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 20px;
+            color: var(--orange);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+        
+        body.crypto-mode .supplier-logo {
+            background-color: var(--dark-card);
+            color: var(--crypto);
+        }
+        
+        .supplier-info h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .supplier-info h3 {
+            color: var(--dark-text);
+        }
+        
+        .supplier-category {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .supplier-category {
+            color: var(--dark-secondary);
+        }
+        
+        .supplier-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .stat-value {
+            color: var(--dark-text);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .stat-label {
+            color: var(--dark-secondary);
+        }
+        
+        .supplier-description {
+            font-size: 14px;
+            color: var(--dark-gray);
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        body.crypto-mode .supplier-description {
+            color: var(--dark-text);
+        }
+        
+        .supplier-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .supplier-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-primary {
+            background-color: var(--orange);
+            color: white;
+        }
+        
+        body.crypto-mode .btn-primary {
+            background-color: var(--crypto);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--light-orange);
+        }
+        
+        body.crypto-mode .btn-primary:hover {
+            background-color: #7c8ff0;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            color: var(--orange);
+            border: 1px solid var(--orange);
+        }
+        
+        body.crypto-mode .btn-outline {
+            color: var(--crypto);
+            border-color: var(--crypto);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--light-gray);
+        }
+        
+        body.crypto-mode .btn-outline:hover {
+            background-color: var(--dark-border);
+        }
+        
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--premium);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        
+        /* Recent Orders */
+        .recent-orders {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px var(--shadow);
+            position: relative;
+            border: 1px solid var(--medium-gray);
+        }
+        
+        body.crypto-mode .recent-orders {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .section-title {
+            color: var(--dark-text);
+        }
+        
+        .view-all {
+            color: var(--orange);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        body.crypto-mode .view-all {
+            color: var(--crypto);
+        }
+        
+        .view-all:hover {
+            text-decoration: underline;
+        }
+        
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .search-table {
+            position: relative;
+            width: 250px;
+        }
+        
+        .search-table input {
+            width: 100%;
+            padding: 8px 15px 8px 35px;
+            border-radius: 8px;
+            border: 1px solid var(--medium-gray);
+            background-color: var(--white);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        body.crypto-mode .search-table input {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+            color: var(--dark-text);
+        }
+        
+        .search-table input:focus {
+            outline: none;
+            border-color: var(--orange);
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+        }
+        
+        body.crypto-mode .search-table input:focus {
+            border-color: var(--crypto);
+            box-shadow: 0 0 0 3px rgba(98, 126, 234, 0.2);
+        }
+        
+        .search-table i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .search-table i {
+            color: var(--dark-secondary);
+        }
+        
+        .filter-table {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background-color: var(--white);
+            border: 1px solid var(--medium-gray);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        body.crypto-mode .filter-btn {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+            color: var(--dark-secondary);
+        }
+        
+        .filter-btn:hover {
+            background-color: var(--light-gray);
+            color: var(--orange);
+        }
+        
+        body.crypto-mode .filter-btn:hover {
+            background-color: var(--dark-border);
+            color: var(--crypto);
+        }
+        
+        .filter-btn.active {
+            background-color: var(--orange);
+            color: white;
+            border-color: var(--orange);
+        }
+        
+        body.crypto-mode .filter-btn.active {
+            background-color: var(--crypto);
+            border-color: var(--crypto);
+        }
+        
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .orders-table th {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid var(--medium-gray);
+            color: var(--gray);
+            font-weight: 500;
+            font-size: 14px;
+            position: relative;
+        }
+        
+        body.crypto-mode .orders-table th {
+            border-bottom-color: var(--dark-border);
+            color: var(--dark-secondary);
+        }
+        
+        .orders-table th.sortable {
+            cursor: pointer;
+        }
+        
+        .orders-table th.sortable:hover {
+            color: var(--orange);
+        }
+        
+        body.crypto-mode .orders-table th.sortable:hover {
+            color: var(--crypto);
+        }
+        
+        .orders-table th.sortable i {
+            margin-left: 5px;
+            font-size: 12px;
+        }
+        
+        .orders-table td {
+            padding: 18px 15px;
+            border-bottom: 1px solid var(--light-gray);
+            font-size: 14px;
+            color: var(--dark-gray);
+        }
+        
+        body.crypto-mode .orders-table td {
+            border-bottom-color: var(--dark-border);
+            color: var(--dark-text);
+        }
+        
+        .orders-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .orders-table tr:hover {
+            background-color: var(--light-gray);
+        }
+        
+        body.crypto-mode .orders-table tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .order-id {
+            color: var(--gray);
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+        
+        body.crypto-mode .order-id {
+            color: var(--dark-secondary);
+        }
+        
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+        }
+        
+        .status.completed {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+        
+        .status.pending {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: var(--warning);
+        }
+        
+        .status.failed {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+        
+        .status.processing {
+            background-color: rgba(0, 123, 255, 0.1);
+            color: var(--info);
+        }
+        
+        body.crypto-mode .status.completed {
+            background-color: rgba(40, 167, 69, 0.2);
+        }
+        
+        body.crypto-mode .status.pending {
+            background-color: rgba(255, 193, 7, 0.2);
+        }
+        
+        body.crypto-mode .status.failed {
+            background-color: rgba(220, 53, 69, 0.2);
+        }
+        
+        body.crypto-mode .status.processing {
+            background-color: rgba(0, 123, 255, 0.2);
+        }
+        
+        .amount {
+            font-weight: 600;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .amount {
+            color: var(--dark-text);
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        body.crypto-mode .action-btn {
+            color: var(--dark-secondary);
+        }
+        
+        .action-btn:hover {
+            color: var(--orange);
+            background-color: var(--light-gray);
+        }
+        
+        body.crypto-mode .action-btn:hover {
+            color: var(--crypto);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+        
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--gray);
+            font-weight: 500;
+        }
+        
+        body.crypto-mode .page-btn {
+            color: var(--dark-secondary);
+        }
+        
+        .page-btn:hover {
+            background-color: var(--light-gray);
+            color: var(--orange);
+        }
+        
+        body.crypto-mode .page-btn:hover {
+            background-color: var(--dark-border);
+            color: var(--crypto);
+        }
+        
+        .page-btn.active {
+            background-color: var(--orange);
+            color: white;
+        }
+        
+        body.crypto-mode .page-btn.active {
+            background-color: var(--crypto);
+        }
+        
+        /* Mobile Responsiveness */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--black);
+            font-size: 24px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+        
+        body.crypto-mode .menu-toggle {
+            color: var(--dark-text);
+        }
+        
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+        
+        .overlay.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                height: 100%;
+                z-index: 100;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .withdraw-card {
+                grid-column: span 1;
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .header-controls {
+                display: none;
+            }
+            
+            .table-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .search-table {
+                width: 100%;
+            }
+            
+            .orders-table {
+                font-size: 12px;
+            }
+            
+            .orders-table th, .orders-table td {
+                padding: 10px 5px;
+            }
+            
+            .suppliers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-charts {
+                grid-template-columns: 1fr;
+            }
+            
+            .crypto-label {
+                display: none;
+            }
+            
+            .order-status-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Notification Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            max-width: 350px;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            border-left: 4px solid var(--orange);
+        }
+        
+        body.crypto-mode .toast {
+            background-color: var(--dark-card);
+            border-left-color: var(--crypto);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast-icon {
+            font-size: 24px;
+            color: var(--orange);
+        }
+        
+        body.crypto-mode .toast-icon {
+            color: var(--crypto);
+        }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .toast-title {
+            color: var(--dark-text);
+        }
+        
+        .toast-message {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .toast-message {
+            color: var(--dark-secondary);
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        body.crypto-mode .toast-close {
+            color: var(--dark-secondary);
+        }
+        
+        .toast-close:hover {
+            color: var(--black);
+            background-color: var(--light-gray);
+        }
+        
+        body.crypto-mode .toast-close:hover {
+            color: var(--dark-text);
+            background-color: var(--dark-border);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease;
+        }
+        
+        body.crypto-mode .modal-content {
+            background-color: var(--dark-card);
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--medium-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        body.crypto-mode .modal-header {
+            border-bottom-color: var(--dark-border);
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .modal-title {
+            color: var(--dark-text);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--gray);
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        body.crypto-mode .modal-close {
+            color: var(--dark-secondary);
+        }
+        
+        .modal-close:hover {
+            color: var(--black);
+            background-color: var(--light-gray);
+        }
+        
+        body.crypto-mode .modal-close:hover {
+            color: var(--dark-text);
+            background-color: var(--dark-border);
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-gray);
+        }
+        
+        body.crypto-mode .form-label {
+            color: var(--dark-text);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--medium-gray);
+            background-color: var(--white);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        body.crypto-mode .form-input {
+            background-color: var(--dark-bg);
+            border-color: var(--dark-border);
+            color: var(--dark-text);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--orange);
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+        }
+        
+        body.crypto-mode .form-input:focus {
+            border-color: var(--crypto);
+            box-shadow: 0 0 0 3px rgba(98, 126, 234, 0.2);
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--orange);
+            color: white;
+        }
+        
+        body.crypto-mode .btn-primary {
+            background-color: var(--crypto);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--light-orange);
+        }
+        
+        body.crypto-mode .btn-primary:hover {
+            background-color: #7c8ff0;
+        }
+        
+        .btn-secondary {
+            background-color: var(--white);
+            color: var(--gray);
+            border: 1px solid var(--medium-gray);
+        }
+        
+        body.crypto-mode .btn-secondary {
+            background-color: var(--dark-bg);
+            color: var(--dark-secondary);
+            border-color: var(--dark-border);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--light-gray);
+        }
+        
+        body.crypto-mode .btn-secondary:hover {
+            background-color: var(--dark-border);
+        }
+        
+        /* Withdraw Options */
+        .withdraw-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .withdraw-option {
+            flex: 1;
+            border: 2px solid var(--medium-gray);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        body.crypto-mode .withdraw-option {
+            border-color: var(--dark-border);
+        }
+        
+        .withdraw-option:hover {
+            border-color: var(--orange);
+        }
+        
+        body.crypto-mode .withdraw-option:hover {
+            border-color: var(--crypto);
+        }
+        
+        .withdraw-option.selected {
+            border-color: var(--orange);
+            background-color: rgba(255, 107, 0, 0.05);
+        }
+        
+        body.crypto-mode .withdraw-option.selected {
+            border-color: var(--crypto);
+            background-color: rgba(98, 126, 234, 0.1);
+        }
+        
+        .withdraw-option-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .withdraw-option.crypto .withdraw-option-icon {
+            color: var(--crypto);
+        }
+        
+        .withdraw-option.fiat .withdraw-option-icon {
+            color: var(--info);
+        }
+        
+        .withdraw-option-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .withdraw-option-title {
+            color: var(--dark-text);
+        }
+        
+        .withdraw-option-description {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .withdraw-option-description {
+            color: var(--dark-secondary);
+        }
+        
+        .withdraw-option-fee {
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .withdraw-option.crypto .withdraw-option-fee {
+            color: var(--crypto);
+        }
+        
+        .withdraw-option.fiat .withdraw-option-fee {
+            color: var(--danger);
+        }
+        
+        /* Crypto Address Display */
+        .crypto-address {
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: var(--dark-gray);
+            word-break: break-all;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        body.crypto-mode .crypto-address {
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+        }
+        
+        .copy-address {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        body.crypto-mode .copy-address {
+            color: var(--dark-secondary);
+        }
+        
+        .copy-address:hover {
+            color: var(--orange);
+            background-color: var(--medium-gray);
+        }
+        
+        body.crypto-mode .copy-address:hover {
+            color: var(--crypto);
+            background-color: var(--dark-border);
+        }
+        
+        .qr-code {
+            width: 150px;
+            height: 150px;
+            background-color: var(--white);
+            border: 1px solid var(--medium-gray);
+            border-radius: 8px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .qr-code {
+            background-color: var(--dark-bg);
+            border-color: var(--dark-border);
+            color: var(--dark-secondary);
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--black);
+            color: var(--white);
+            text-align: center;
+            border-radius: 8px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            font-weight: 400;
+        }
+        
+        body.crypto-mode .tooltip .tooltiptext {
+            background-color: var(--dark-border);
+        }
+        
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--black) transparent transparent transparent;
+        }
+        
+        body.crypto-mode .tooltip .tooltiptext::after {
+            border-color: var(--dark-border) transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--orange);
+        }
+        
+        body.crypto-mode input:checked + .toggle-slider {
+            background-color: var(--crypto);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* AI Assistant */
+        .ai-assistant {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            transform: translateY(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        body.crypto-mode .ai-assistant {
+            background-color: var(--dark-card);
+        }
+        
+        .ai-assistant.active {
+            transform: translateY(0);
+        }
+        
+        .ai-trigger {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--orange);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+        
+        body.crypto-mode .ai-trigger {
+            background-color: var(--crypto);
+        }
+        
+        .ai-trigger:hover {
+            transform: scale(1.1);
+            background-color: var(--light-orange);
+        }
+        
+        body.crypto-mode .ai-trigger:hover {
+            background-color: #7c8ff0;
+        }
+        
+        .ai-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--medium-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        body.crypto-mode .ai-header {
+            border-bottom-color: var(--dark-border);
+        }
+        
+        .ai-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .ai-title {
+            color: var(--dark-text);
+        }
+        
+        .ai-close {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 18px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        body.crypto-mode .ai-close {
+            color: var(--dark-secondary);
+        }
+        
+        .ai-close:hover {
+            background-color: var(--light-gray);
+            color: var(--black);
+        }
+        
+        body.crypto-mode .ai-close:hover {
+            background-color: var(--dark-border);
+            color: var(--dark-text);
+        }
+        
+        .ai-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .ai-message {
+            padding: 12px 15px;
+            border-radius: 12px;
+            max-width: 80%;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .ai-message.ai-bot {
+            background-color: var(--light-gray);
+            color: var(--black);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        
+        body.crypto-mode .ai-message.ai-bot {
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+        }
+        
+        .ai-message.ai-user {
+            background-color: var(--orange);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        
+        body.crypto-mode .ai-message.ai-user {
+            background-color: var(--crypto);
+        }
+        
+        .ai-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .suggestion-chip {
+            padding: 8px 12px;
+            background-color: var(--light-gray);
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--gray);
+        }
+        
+        body.crypto-mode .suggestion-chip {
+            background-color: var(--dark-bg);
+            color: var(--dark-secondary);
+        }
+        
+        .suggestion-chip:hover {
+            background-color: var(--medium-gray);
+            color: var(--orange);
+        }
+        
+        body.crypto-mode .suggestion-chip:hover {
+            background-color: var(--dark-border);
+            color: var(--crypto);
+        }
+        
+        .ai-input {
+            padding: 15px;
+            border-top: 1px solid var(--medium-gray);
+            display: flex;
+            gap: 10px;
+        }
+        
+        body.crypto-mode .ai-input {
+            border-top-color: var(--dark-border);
+        }
+        
+        .ai-input input {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--medium-gray);
+            background-color: var(--white);
+            font-size: 14px;
+        }
+        
+        body.crypto-mode .ai-input input {
+            background-color: var(--dark-bg);
+            border-color: var(--dark-border);
+            color: var(--dark-text);
+        }
+        
+        .ai-input input:focus {
+            outline: none;
+            border-color: var(--orange);
+        }
+        
+        body.crypto-mode .ai-input input:focus {
+            border-color: var(--crypto);
+        }
+        
+        .ai-input button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--orange);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        body.crypto-mode .ai-input button {
+            background-color: var(--crypto);
+        }
+        
+        .ai-input button:hover {
+            background-color: var(--light-orange);
+        }
+        
+        body.crypto-mode .ai-input button:hover {
+            background-color: #7c8ff0;
+        }
+        
+        /* Insights Section */
+        .insights-section {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px var(--shadow);
+            border: 1px solid var(--medium-gray);
+            margin-bottom: 40px;
+        }
+        
+        body.crypto-mode .insights-section {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .insight-card {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow);
+            border: 1px solid var(--medium-gray);
+        }
+        
+        body.crypto-mode .insight-card {
+            background-color: var(--dark-card);
+            border-color: var(--dark-border);
+        }
+        
+        .insight-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .insight-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        
+        .insight-icon.trend-up {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+        
+        .insight-icon.recommendation {
+            background-color: rgba(255, 107, 0, 0.1);
+            color: var(--orange);
+        }
+        
+        .insight-icon.alert {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+        
+        .insight-type {
+            font-size: 14px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+        
+        body.crypto-mode .insight-type {
+            color: var(--dark-secondary);
+        }
+        
+        .insight-content h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--black);
+        }
+        
+        body.crypto-mode .insight-content h3 {
+            color: var(--dark-text);
+        }
+        
+        .insight-content p {
+            font-size: 14px;
+            color: var(--dark-gray);
+            margin-bottom: 15px;
+        }
+        
+        body.crypto-mode .insight-content p {
+            color: var(--dark-text);
+        }
+        
+        .insight-chart {
+            height: 100px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+        }
+        
+        body.crypto-mode .insight-chart {
+            background-color: var(--dark-bg);
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+                        <path class="bulb" d="M50,10 C30,10 15,25 15,45 C15,60 25,70 30,80 L30,100 L70,100 L70,80 C75,70 85,60 85,45 C85,25 70,10 50,10 Z" />
+                        <line class="bulb" x1="30" y1="110" x2="70" y2="110" />
+                        <line class="bulb" x1="35" y1="120" x2="65" y2="120" />
+                    </svg>
+                </div>
+                <div class="logo-text">Paylume</div>
+            </div>
+            
+            <div class="menu-item active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Pedidos</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-box-open"></i>
+                <span>Produtos</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-gem"></i>
+                <span>Fornecedores Premium</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Relatórios</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-headset"></i>
+                <span>Suporte</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Dashboard</h1>
+                    
+                    <!-- Crypto Mode Toggle -->
+                    <label class="crypto-toggle">
+                        <input type="checkbox" id="cryptoModeToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <div class="crypto-label">
+                        <i class="fab fa-bitcoin"></i>
+                        <span>Modo Crypto</span>
+                    </div>
+                </div>
+                
+                <div class="header-controls">
+                    <div class="search-box" id="searchBox">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Buscar...">
+                    </div>
+                    <button class="date-filter" id="dateFilter">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Últimos 30 dias</span>
+                    </button>
+                    <div class="user-info">
+                        <div class="notification-icon tooltip" id="notificationIcon">
+                            <i class="fas fa-bell"></i>
+                            <div class="notification-badge">3</div>
+                            <span class="tooltiptext">Você tem 3 notificações</span>
+                        </div>
+                        <div class="user-avatar">
+                            <img src="https://picsum.photos/seed/user123/100/100.jpg" alt="Avatar do usuário">
+                        </div>
+                        <span>João Silva</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Cards -->
+            <div class="dashboard-cards">
+                <div class="withdraw-card">
+                    <div class="withdraw-info">
+                        <div class="withdraw-title">Saldo Disponível</div>
+                        <div class="withdraw-amount" id="balanceAmount">R$ 12.568,90</div>
+                        <div class="crypto-balance">
+                            <div class="crypto-icon">₮</div>
+                            <div class="crypto-amount" id="cryptoBalanceAmount">2,458.90 USDT</div>
+                        </div>
+                        <div class="card-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Atualizado em tempo real</span>
+                        </div>
+                    </div>
+                    <button class="withdraw-button" id="withdrawBtn">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Sacar
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Vendas Totais</div>
+                        <div class="card-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div class="card-value" id="totalSales">R$ 24.568</div>
+                    <div class="card-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>12.5% desde o mês passado</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Pedidos</div>
+                        <div class="card-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                    </div>
+                    <div class="card-value">358</div>
+                    <div class="card-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>8.2% desde o mês passado</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Taxa de Conversão</div>
+                        <div class="card-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                    </div>
+                    <div class="card-value">4.7%</div>
+                    <div class="card-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>1.2% desde o mês passado</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sales Chart Section -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">Vendas dos Últimos Dias</div>
+                        <div class="chart-options">
+                            <div class="chart-option active">7 dias</div>
+                            <div class="chart-option">30 dias</div>
+                            <div class="chart-option">90 dias</div>
+                        </div>
+                    </div>
+                    <div class="chart" id="salesChart"></div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">Status dos Pedidos</div>
+                    </div>
+                    <div class="order-status-cards">
+                        <div class="order-status-card">
+                            <div class="status-icon pending">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="status-info">
+                                <div class="status-value">24</div>
+                                <div class="status-label">Pendentes</div>
+                            </div>
+                        </div>
+                        
+                        <div class="order-status-card">
+                            <div class="status-icon processing">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <div class="status-info">
+                                <div class="status-value">12</div>
+                                <div class="status-label">Processando</div>
+                            </div>
+                        </div>
+                        
+                        <div class="order-status-card">
+                            <div class="status-icon completed">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="status-info">
+                                <div class="status-value">322</div>
+                                <div class="status-label">Concluídos</div>
+                            </div>
+                        </div>
+                        
+                        <div class="order-status-card">
+                            <div class="status-icon failed">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
+                            <div class="status-info">
+                                <div class="status-value">5</div>
+                                <div class="status-label">Falhados</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- News Section -->
+            <div class="news-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-newspaper"></i>
+                        Novidades
+                    </div>
+                    <button class="btn btn-primary" id="fixIssuesBtn">
+                        <i class="fas fa-magic"></i>
+                        Corrigir Automaticamente
+                    </button>
+                </div>
+                
+                <div class="news-grid">
+                    <div class="news-item">
+                        <div class="news-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="news-content">
+                            <h4>Atualização do Sistema</h4>
+                            <p>O sistema foi atualizado com novas funcionalidades de segurança.</p>
+                            <div class="news-date">Hoje, 10:30</div>
+                        </div>
+                    </div>
+                    
+                    <div class="news-item warning">
+                        <div class="news-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="news-content">
+                            <h4>Problema de Pagamento Detectado</h4>
+                            <p>Foram detectados problemas com o gateway de pagamento em algumas transações.</p>
+                            <div class="news-date">Hoje, 09:15</div>
+                        </div>
+                    </div>
+                    
+                    <div class="news-item success">
+                        <div class="news-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="news-content">
+                            <h4>Novo Fornecedor Disponível</h4>
+                            <p>O fornecedor "TechStore" agora está disponível como parceiro premium.</p>
+                            <div class="news-date">Ontem, 16:45</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Transaction Metrics Section -->
+            <div class="transaction-metrics">
+                <div class="metrics-header">
+                    <div class="metrics-title">
+                        <i class="fas fa-exchange-alt"></i>
+                        Métricas de Transações
+                    </div>
+                    <div class="view-all" id="refreshMetrics">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                </div>
+                
+                <div class="metrics-stats">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="metric-info">
+                            <div class="metric-value">98.5%</div>
+                            <div class="metric-label">Taxa de Sucesso</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="metric-info">
+                            <div class="metric-value">1.2s</div>
+                            <div class="metric-label">Tempo Médio</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="metric-info">
+                            <div class="metric-value">99.9%</div>
+                            <div class="metric-label">Segurança</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="metric-info">
+                            <div class="metric-value">3</div>
+                            <div class="metric-label">Moedas Suportadas</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metrics-charts">
+                    <div class="chart-container">
+                        <h3>Volume de Transações</h3>
+                        <div class="chart" id="volumeChart"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Premium Suppliers Section -->
+            <div class="premium-suppliers">
+                <div class="premium-header">
+                    <div class="premium-title">
+                        <i class="fas fa-gem"></i>
+                        <span>Fornecedores Premium</span>
+                    </div>
+                    <div class="view-all" id="viewAllSuppliers">
+                        <span>Ver todos</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+                
+                <div class="suppliers-grid">
+                    <div class="supplier-card">
+                        <div class="premium-badge">Premium</div>
+                        <div class="supplier-header">
+                            <div class="supplier-logo">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <div class="supplier-info">
+                                <h3>TechCell Argentina</h3>
+                                <div class="supplier-category">Eletrônicos</div>
+                            </div>
+                        </div>
+                        
+                        <div class="supplier-stats">
+                            <div class="stat">
+                                <div class="stat-value">98%</div>
+                                <div class="stat-label">Sucesso</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">24h</div>
+                                <div class="stat-label">Entrega</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">4.8</div>
+                                <div class="stat-label">Avaliação</div>
+                            </div>
+                        </div>
+                        
+                        <div class="supplier-description">
+                            Fornecedor premium de eletrônicos com entrega rápida e garantia estendida.
+                        </div>
+                        
+                        <div class="supplier-actions">
+                            <button class="supplier-btn btn-primary">
+                                <i class="fas fa-handshake"></i>
+                                Parceiro
+                            </button>
+                            <button class="supplier-btn btn-outline">
+                                <i class="fas fa-info-circle"></i>
+                                Detalhes
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="supplier-card">
+                        <div class="premium-badge">Premium</div>
+                        <div class="supplier-header">
+                            <div class="supplier-logo">
+                                <i class="fas fa-tshirt"></i>
+                            </div>
+                            <div class="supplier-info">
+                                <h3>Fashion BA</h3>
+                                <div class="supplier-category">Moda</div>
+                            </div>
+                        </div>
+                        
+                        <div class="supplier-stats">
+                            <div class="stat">
+                                <div class="stat-value">96%</div>
+                                <div class="stat-label">Sucesso</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">48h</div>
+                                <div class="stat-label">Entrega</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">4.6</div>
+                                <div class="stat-label">Avaliação</div>
+                            </div>
+                        </div>
+                        
+                        <div class="supplier-description">
+                            Roupas e acessórios de alta qualidade com designs exclusivos.
+                        </div>
+                        
+                        <div class="supplier-actions">
+                            <button class="supplier-btn btn-primary">
+                                <i class="fas fa-handshake"></i>
+                                Parceiro
+                            </button>
+                            <button class="supplier-btn btn-outline">
+                                <i class="fas fa-info-circle"></i>
+                                Detalhes
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="supplier-card">
+                        <div class="premium-badge">Premium</div>
+                        <div class="supplier-header">
+                            <div class="supplier-logo">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div class="supplier-info">
+                                <h3>Hogar Express</h3>
+                                <div class="supplier-category">Casa & Decoração</div>
+                            </div>
+                        </div>
+                        
+                        <div class="supplier-stats">
+                            <div class="stat">
+                                <div class="stat-value">94%</div>
+                                <div class="stat-label">Sucesso</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">72h</div>
+                                <div class="stat-label">Entrega</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">4.7</div>
+                                <div class="stat-label">Avaliação</div>
+                            </div>
+                        </div>
+                        
+                        <div class="supplier-description">
+                            Artigos para casa e decoração com entrega garantida em 3 dias.
+                        </div>
+                        
+                        <div class="supplier-actions">
+                            <button class="supplier-btn btn-primary">
+                                <i class="fas fa-handshake"></i>
+                                Parceiro
+                            </button>
+                            <button class="supplier-btn btn-outline">
+                                <i class="fas fa-info-circle"></i>
+                                Detalhes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Orders Table -->
+            <div class="recent-orders">
+                <div class="section-header">
+                    <div class="section-title">Pedidos Recentes</div>
+                    <div class="view-all">
+                        <span>Ver todos</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+                
+                <div class="table-controls">
+                    <div class="search-table">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Buscar pedidos...">
+                    </div>
+                    <div class="filter-table">
+                        <button class="filter-btn active">Todos</button>
+                        <button class="filter-btn">Pendentes</button>
+                        <button class="filter-btn">Processando</button>
+                        <button class="filter-btn">Concluídos</button>
+                    </div>
+                </div>
+                
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable">ID do Pedido <i class="fas fa-sort"></i></th>
+                            <th class="sortable">Data <i class="fas fa-sort"></i></th>
+                            <th>Cliente</th>
+                            <th class="sortable">Valor <i class="fas fa-sort"></i></th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="order-id">#ORD-7845</td>
+                            <td>12/05/2023</td>
+                            <td>Maria Santos</td>
+                            <td class="amount">R$ 245,90</td>
+                            <td><span class="status completed">Concluído</span></td>
+                            <td>
+                                <button class="action-btn tooltip">
+                                    <i class="fas fa-eye"></i>
+                                    <span class="tooltiptext">Visualizar</span>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="order-id">#ORD-7844</td>
+                            <td>12/05/2023</td>
+                            <td>Carlos Oliveira</td>
+                            <td class="amount">R$ 89,99</td>
+                            <td><span class="status processing">Processando</span></td>
+                            <td>
+                                <button class="action-btn tooltip">
+                                    <i class="fas fa-eye"></i>
+                                    <span class="tooltiptext">Visualizar</span>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="order-id">#ORD-7843</td>
+                            <td>11/05/2023</td>
+                            <td>Ana Costa</td>
+                            <td class="amount">R$ 156,50</td>
+                            <td><span class="status pending">Pendente</span></td>
+                            <td>
+                                <button class="action-btn tooltip">
+                                    <i class="fas fa-eye"></i>
+                                    <span class="tooltiptext">Visualizar</span>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="order-id">#ORD-7842</td>
+                            <td>11/05/2023</td>
+                            <td>Roberto Silva</td>
+                            <td class="amount">R$ 320,00</td>
+                            <td><span class="status completed">Concluído</span></td>
+                            <td>
+                                <button class="action-btn tooltip">
+                                    <i class="fas fa-eye"></i>
+                                    <span class="tooltiptext">Visualizar</span>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="order-id">#ORD-7841</td>
+                            <td>10/05/2023</td>
+                            <td>Fernanda Lima</td>
+                            <td class="amount">R$ 78,25</td>
+                            <td><span class="status failed">Falhou</span></td>
+                            <td>
+                                <button class="action-btn tooltip">
+                                    <i class="fas fa-eye"></i>
+                                    <span class="tooltiptext">Visualizar</span>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="pagination">
+                    <div class="page-btn"><i class="fas fa-chevron-left"></i></div>
+                    <div class="page-btn active">1</div>
+                    <div class="page-btn">2</div>
+                    <div class="page-btn">3</div>
+                    <div class="page-btn"><i class="fas fa-chevron-right"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for Withdraw -->
+    <div class="modal" id="withdrawModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Saque de Saldo</div>
+                <button class="modal-close" id="closeWithdrawModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="withdraw-options">
+                    <div class="withdraw-option fiat selected">
+                        <div class="withdraw-option-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="withdraw-option-title">Transferência Bancária</div>
+                        <div class="withdraw-option-description">Receba seu dinheiro diretamente na sua conta</div>
+                        <div class="withdraw-option-fee">Taxa: R$ 5,90</div>
+                    </div>
+                    <div class="withdraw-option crypto">
+                        <div class="withdraw-option-icon">
+                            <i class="fab fa-bitcoin"></i>
+                        </div>
+                        <div class="withdraw-option-title">Criptomoeda</div>
+                        <div class="withdraw-option-description">Converta e transfira para sua carteira digital</div>
+                        <div class="withdraw-option-fee">Taxa: 1,5%</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Valor</label>
+                    <input type="text" class="form-input" placeholder="R$ 0,00" value="R$ 1.000,00">
+                </div>
+                
+                <div class="form-group fiat-withdraw">
+                    <label class="form-label">Dados Bancários</label>
+                    <input type="text" class="form-input" placeholder="Banco, Agência, Conta">
+                </div>
+                
+                <div class="form-group crypto-withdraw" style="display: none;">
+                    <label class="form-label">Endereço da Carteira</label>
+                    <div class="crypto-address">
+                        0x742d35Cc6634C0532925a3b844Bc454e4438f44e
+                        <button class="copy-address">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="qr-code">
+                        QR Code
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="btn btn-secondary">Cancelar</button>
+                    <button class="btn btn-primary">Confirmar Saque</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="toast-content">
+            <div class="toast-title">Sucesso!</div>
+            <div class="toast-message">Operação realizada com sucesso.</div>
+        </div>
+        <button class="toast-close">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <!-- AI Assistant -->
+    <div class="ai-assistant" id="aiAssistant">
+        <div class="ai-header">
+            <div class="ai-title">
+                <i class="fas fa-robot"></i>
+                Assistente Paylume
+            </div>
+            <button class="ai-close" id="aiClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="ai-body">
+            <div class="ai-message ai-bot">
+                Olá! Sou o assistente virtual da Paylume. Como posso ajudar você hoje?
+            </div>
+            <div class="ai-suggestions">
+                <div class="suggestion-chip">
+                    <i class="fas fa-chart-line"></i>
+                    Ver relatórios
+                </div>
+                <div class="suggestion-chip">
+                    <i class="fas fa-credit-card"></i>
+                    Status de pagamento
+                </div>
+                <div class="suggestion-chip">
+                    <i class="fas fa-question-circle"></i>
+                    Ajuda
+                </div>
+            </div>
+        </div>
+        <div class="ai-input">
+            <input type="text" placeholder="Digite sua mensagem...">
+            <button>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+    
+    <button class="ai-trigger" id="aiTrigger">
+        <i class="fas fa-robot"></i>
+    </button>
+    
+    <div class="overlay" id="overlay"></div>
+    
+    <script>
+        // Toggle Crypto Mode
+        const cryptoModeToggle = document.getElementById('cryptoModeToggle');
+        const body = document.body;
+        
+        cryptoModeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                body.classList.add('crypto-mode');
+                document.getElementById('balanceAmount').textContent = '2,458.90 USDT';
+                document.getElementById('totalSales').textContent = '4,856.32 USDT';
+            } else {
+                body.classList.remove('crypto-mode');
+                document.getElementById('balanceAmount').textContent = 'R$ 12.568,90';
+                document.getElementById('totalSales').textContent = 'R$ 24.568';
+            }
+        });
+        
+        // Mobile Menu Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+        
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+        
+        // Withdraw Modal
+        const withdrawBtn = document.getElementById('withdrawBtn');
+        const withdrawModal = document.getElementById('withdrawModal');
+        const closeWithdrawModal = document.getElementById('closeWithdrawModal');
+        
+        withdrawBtn.addEventListener('click', function() {
+            withdrawModal.classList.add('active');
+        });
+        
+        closeWithdrawModal.addEventListener('click', function() {
+            withdrawModal.classList.remove('active');
+        });
+        
+        // Withdraw Options
+        const withdrawOptions = document.querySelectorAll('.withdraw-option');
+        const fiatWithdraw = document.querySelector('.fiat-withdraw');
+        const cryptoWithdraw = document.querySelector('.crypto-withdraw');
+        
+        withdrawOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                withdrawOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                if (this.classList.contains('fiat')) {
+                    fiatWithdraw.style.display = 'block';
+                    cryptoWithdraw.style.display = 'none';
+                } else {
+                    fiatWithdraw.style.display = 'none';
+                    cryptoWithdraw.style.display = 'block';
+                }
+            });
+        });
+        
+        // Toast Notification
+        const toast = document.getElementById('toast');
+        const toastClose = document.querySelector('.toast-close');
+        
+        function showToast() {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        toastClose.addEventListener('click', function() {
+            toast.classList.remove('show');
+        });
+        
+        // AI Assistant
+        const aiTrigger = document.getElementById('aiTrigger');
+        const aiAssistant = document.getElementById('aiAssistant');
+        const aiClose = document.getElementById('aiClose');
+        
+        aiTrigger.addEventListener('click', function() {
+            aiAssistant.classList.add('active');
+        });
+        
+        aiClose.addEventListener('click', function() {
+            aiAssistant.classList.remove('active');
+        });
+        
+        // Fix Issues Button
+        const fixIssuesBtn = document.getElementById('fixIssuesBtn');
+        
+        fixIssuesBtn.addEventListener('click', function() {
+            showToast();
+        });
+        
+        // Initialize Charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sales Chart
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            const salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+                    datasets: [{
+                        label: 'Vendas',
+                        data: [3200, 4100, 3800, 5200, 4900, 6100, 5800],
+                        backgroundColor: 'rgba(255, 107, 0, 0.1)',
+                        borderColor: '#ff6b00',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Volume Chart
+            const volumeCtx = document.getElementById('volumeChart').getContext('2d');
+            const volumeChart = new Chart(volumeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+                    datasets: [{
+                        label: 'Volume',
+                        data: [120, 190, 150, 220, 180, 250, 210],
+                        backgroundColor: '#ff6b00',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Update charts when crypto mode is toggled
+            cryptoModeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    salesChart.data.datasets[0].borderColor = '#627eea';
+                    salesChart.data.datasets[0].backgroundColor = 'rgba(98, 126, 234, 0.1)';
+                    volumeChart.data.datasets[0].backgroundColor = '#627eea';
+                } else {
+                    salesChart.data.datasets[0].borderColor = '#ff6b00';
+                    salesChart.data.datasets[0].backgroundColor = 'rgba(255, 107, 0, 0.1)';
+                    volumeChart.data.datasets[0].backgroundColor = '#ff6b00';
+                }
+                salesChart.update();
+                volumeChart.update();
+            });
+        });
+    </script>
+</body>
+</html>
